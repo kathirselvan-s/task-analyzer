@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Analyzer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo">📋</span>
+            <span class="brand-name">Task Analyzer</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="#" class="nav-link active" data-page="dashboard">Dashboard</a></li>
+            <li><a href="#" class="nav-link" data-page="add-task">Add Task</a></li>
+            <li><a href="#" class="nav-link" data-page="analyze">Analyze</a></li>
+            <li><a href="#" class="nav-link" data-page="settings">Settings</a></li>
+        </ul>
+        <div class="connection-badge" id="connection-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Checking...</span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard Page -->
+        <div id="page-dashboard" class="page active">
+            <div class="page-header">
+                <h1>Dashboard</h1>
+                <p class="page-subtitle">Overview of your tasks and priorities</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="totalTasks">0</span>
+                        <span class="stat-label">Total Tasks</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-success">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="completedTasks">0</span>
+                        <span class="stat-label">Completed</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-warning">
+                    <div class="stat-icon">⏰</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="dueSoon">0</span>
+                        <span class="stat-label">Due Soon</span>
+                    </div>
+                </div>
+                <div class="stat-card stat-danger">
+                    <div class="stat-icon">🔥</div>
+                    <div class="stat-info">
+                        <span class="stat-number" id="overdueTasks">0</span>
+                        <span class="stat-label">Overdue</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span class="progress-title">📈 Overall Progress</span>
+                    <span class="progress-percent" id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-stats">
+                    <span><strong id="completedCount">0</strong> of <strong id="totalCount">0</strong> tasks completed</span>
+                    <span>Est. <strong id="remainingHours">0</strong> hours remaining</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Your Tasks</h2>
+                    <button class="btn btn-sm btn-primary" onclick="app.navigateTo('add-task')">+ Add Task</button>
+                </div>
+                <div id="tasksList" class="tasks-list">
+                    <div class="empty-state">
+                        <span class="empty-icon">📝</span>
+                        <p>No tasks yet. Add your first task to get started!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Task Page -->
+        <div id="page-add-task" class="page">
+            <div class="page-header">
+                <h1>Add New Task</h1>
+                <p class="page-subtitle">Create a new task to prioritize</p>
+            </div>
+
+            <div class="card">
+                <form id="taskForm" class="task-form">
+                    <div class="form-group">
+                        <label for="title">Task Title</label>
+                        <input type="text" id="title" name="title" placeholder="What needs to be done?" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="due_date">Due Date</label>
+                            <input type="date" id="due_date" name="due_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="estimated_hours">Estimated Hours</label>
+                            <input type="number" id="estimated_hours" name="estimated_hours" min="0.5" step="0.5" placeholder="2.5" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="importance">Importance: <span id="importanceValue">5</span></label>
+                            <input type="range" id="importance" name="importance" min="1" max="10" value="5" oninput="document.getElementById('importanceValue').textContent = this.value">
+                        </div>
+                        <div class="form-group">
+                            <label for="dependencies">Dependencies (Task IDs)</label>
+                            <input type="text" id="dependencies" name="dependencies" placeholder="e.g., 1, 2, 3">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="app.navigateTo('dashboard')">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Add Task</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Bulk Import</h2>
+                </div>
+                <div class="bulk-import">
+                    <textarea id="bulkInput" placeholder='[{"title": "Task 1", "due_date": "2024-12-01", "estimated_hours": 2.5, "importance": 8}]'></textarea>
+                    <button id="bulkImportBtn" class="btn btn-secondary">Import JSON</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analyze Page -->
+        <div id="page-analyze" class="page">
+            <div class="page-header">
+                <h1>Analyze Tasks</h1>
+                <p class="page-subtitle">Get AI-powered task prioritization based on your work style</p>
+            </div>
+
+            <!-- Work Mode Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🎯 Your Work Mode</h2>
+                    <span class="badge badge-info" id="modeDescription">Select how you want to work today</span>
+                </div>
+                <div class="work-modes">
+                    <label class="work-mode-card">
+                        <input type="radio" name="workMode" value="speed" id="mode-speed">
+                        <div class="work-mode-content">
+                            <span class="mode-icon">⚡</span>
+                            <span class="mode-name">Speed Mode</span>
+                            <span class="mode-desc">Complete tasks FAST! Prioritizes quick wins for maximum productivity momentum.</span>
+                            <div class="mode-tags">
+                                <span class="tag">Quick tasks first</span>
+                                <span class="tag">Build momentum</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="work-mode-card">
+                        <input type="radio" name="workMode" value="effective" id="mode-effective" checked>
+                        <div class="work-mode-content">
+                            <span class="mode-icon">🎯</span>
+                            <span class="mode-name">Effective Mode</span>
+                            <span class="mode-desc">Quality over quantity. Focus on high-impact tasks that matter most.</span>
+                            <div class="mode-tags">
+                                <span class="tag">High impact</span>
+                                <span class="tag">Deep work</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="work-mode-card">
+                        <input type="radio" name="workMode" value="deadline_crisis" id="mode-crisis">
+                        <div class="work-mode-content">
+                            <span class="mode-icon">🚨</span>
+                            <span class="mode-name">Deadline Crisis</span>
+                            <span class="mode-desc">Urgent deadlines! Prioritizes tasks with closest deadlines to avoid missed due dates.</span>
+                            <div class="mode-tags">
+                                <span class="tag">Urgent first</span>
+                                <span class="tag">No overdue</span>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="work-mode-card">
+                        <input type="radio" name="workMode" value="balanced" id="mode-balanced">
+                        <div class="work-mode-content">
+                            <span class="mode-icon">⚖️</span>
+                            <span class="mode-name">Balanced</span>
+                            <span class="mode-desc">Smart mix of urgency, importance, and effort for well-rounded productivity.</span>
+                            <div class="mode-tags">
+                                <span class="tag">All factors</span>
+                                <span class="tag">Optimal flow</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Productivity Preferences -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚙️ Productivity Settings</h2>
+                </div>
+                <div class="productivity-settings">
+                    <div class="setting-group">
+                        <label for="availableHours">Available Hours Today</label>
+                        <div class="input-with-icon">
+                            <span class="input-icon">🕐</span>
+                            <input type="number" id="availableHours" min="1" max="16" value="8" step="0.5">
+                            <span class="input-suffix">hours</span>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <label for="energyLevel">Current Energy Level</label>
+                        <div class="energy-selector">
+                            <label class="energy-option">
+                                <input type="radio" name="energyLevel" value="low">
+                                <span class="energy-icon">😴</span>
+                                <span>Low</span>
+                            </label>
+                            <label class="energy-option">
+                                <input type="radio" name="energyLevel" value="medium" checked>
+                                <span class="energy-icon">😊</span>
+                                <span>Medium</span>
+                            </label>
+                            <label class="energy-option">
+                                <input type="radio" name="energyLevel" value="high">
+                                <span class="energy-icon">🔥</span>
+                                <span>High</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <label>
+                            <input type="checkbox" id="breakReminders" checked>
+                            Include break recommendations
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button id="analyzeBtn" class="btn btn-primary btn-lg">
+                <span class="btn-icon">🚀</span>
+                Analyze & Prioritize Tasks
+            </button>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing your tasks with AI...</p>
+            </div>
+
+            <div id="errorMessage" class="error-message hidden"></div>
+
+            <!-- Analysis Results -->
+            <div id="results" class="results-container"></div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="page-settings" class="page">
+            <div class="page-header">
+                <h1>Settings</h1>
+                <p class="page-subtitle">Configure your task analyzer</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>API Configuration</h2>
+                </div>
+                <div class="settings-group">
+                    <label>Backend URL</label>
+                    <input type="text" id="apiUrl" value="http://127.0.0.1:8000/api" readonly>
+                    <button class="btn btn-sm btn-secondary" onclick="app.checkBackendConnection()">Test Connection</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Data Management</h2>
+                </div>
+                <div class="settings-actions">
+                    <button class="btn btn-secondary" onclick="app.exportTasks()">Export Tasks</button>
+                    <button class="btn btn-danger" onclick="app.clearAllTasks()">Clear All Tasks</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
